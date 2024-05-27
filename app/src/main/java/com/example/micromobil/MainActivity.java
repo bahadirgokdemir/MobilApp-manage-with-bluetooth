@@ -2,6 +2,7 @@ package com.example.micromobil;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -27,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        profileManager = ProfileManager.getInstance();
+        profileManager = ProfileManager.getInstance(this);
         profileListLayout = findViewById(R.id.profile_list);
         addProfileButton = findViewById(R.id.addProfileButton);
 
@@ -92,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         profileListLayout.removeAllViews();
 
         // Varsayılan "Home Profile" profilini ekle
-        Profile homeProfile = new Profile("Home Profile", "Default");
+        Profile homeProfile = new Profile("Home Profile", "Default", new ArrayList<>());
         addProfileButton(homeProfile);
 
         List<Profile> profiles = profileManager.getProfiles();
@@ -178,14 +180,15 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == RESULT_OK) {
             String profileName = data.getStringExtra("profileName");
-            Profile profile = new Profile(profileName, "Type"); // Profile tipi eklenmeli
+            Profile profile = new Profile(profileName, "Type", new ArrayList<>()); // Profile tipi eklenmeli
             profileManager.addProfile(profile);
+            Log.d("ProfileManager", "Profile added: " + profile.getName());
             loadProfiles();
         } else if (requestCode == 2 && resultCode == RESULT_OK) {
             String oldProfileName = data.getStringExtra("oldProfileName");
             String newProfileName = data.getStringExtra("newProfileName");
             String newProfileType = data.getStringExtra("newProfileType");
-            profileManager.updateProfile(oldProfileName, newProfileName, newProfileType);
+            profileManager.updateProfile(oldProfileName, newProfileName, newProfileType, new ArrayList<>());
             loadProfiles();
         }
     }

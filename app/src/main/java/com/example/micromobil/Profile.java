@@ -1,12 +1,17 @@
 package com.example.micromobil;
 
-public class Profile {
+import java.io.Serializable;
+import java.util.List;
+
+public class Profile implements Serializable {
     private String name;
     private String type;
+    private List<Integer> temperatures;
 
-    public Profile(String name, String type) {
+    public Profile(String name, String type, List<Integer> temperatures) {
         this.name = name;
         this.type = type;
+        this.temperatures = temperatures;
     }
 
     public String getName() {
@@ -23,5 +28,13 @@ public class Profile {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public List<Integer> getTemperatures() {
+        return temperatures;
+    }
+
+    public void setTemperatures(List<Integer> temperatures) {
+        this.temperatures = temperatures;
     }
 }

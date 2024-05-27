@@ -6,4 +6,10 @@
     <string name="profile_name">Profile Name</string>
     <string name="profile_type">Profile Type</string>
     <string name="save_profile">Save Profile</string>
+    <string-array name="drink_types">
+        <item>Kola</item>
+        <item>Çay</item>
+        <item>Kahve</item>
+        <item>Soğuk Çay</item>
+    </string-array>
 </resources>

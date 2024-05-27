@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:layout_marginBottom="8dp">
+
+    <Spinner
+        android:id="@+id/profileTypeSpinner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:padding="8dp" />
+
+    <EditText
+        android:id="@+id/temperatureField"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:hint="Temperature"
+        android:inputType="number"
+        android:padding="8dp" />
+
+    <ImageButton
+        android:id="@+id/addDrinkButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_add"
+        android:background="@android:color/transparent"
+        android:contentDescription="Add" />
+
+    <ImageButton
+        android:id="@+id/deleteDrinkButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_delete"
+        android:background="@android:color/transparent"
+        android:contentDescription="Delete"
+        android:visibility="gone" /> <!-- İlk satırda görünmesin -->
+</LinearLayout>

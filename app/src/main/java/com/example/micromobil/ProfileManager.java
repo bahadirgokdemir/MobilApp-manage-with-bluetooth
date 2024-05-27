@@ -1,25 +1,36 @@
 package com.example.micromobil;
 
+import android.content.Context;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ProfileManager {
     private static ProfileManager instance;
     private List<Profile> profiles;
+    private Context context;
 
-    private ProfileManager() {
+    private ProfileManager(Context context) {
+        this.context = context.getApplicationContext();
         profiles = new ArrayList<>();
+        loadProfilesFromFile();
     }
 
-    public static ProfileManager getInstance() {
+    public static ProfileManager getInstance(Context context) {
         if (instance == null) {
-            instance = new ProfileManager();
+            instance = new ProfileManager(context);
         }
         return instance;
     }
 
     public void addProfile(Profile profile) {
         profiles.add(profile);
+        saveProfilesToFile();
     }
 
     public void removeProfile(String name) {
@@ -32,14 +43,17 @@ public class ProfileManager {
         }
         if (profileToRemove != null) {
             profiles.remove(profileToRemove);
+            saveProfilesToFile();
         }
     }
 
-    public void updateProfile(String oldName, String newName, String newType) {
+    public void updateProfile(String oldName, String newName, String newType, List<Integer> temperatures) {
         for (Profile profile : profiles) {
             if (profile.getName().equals(oldName)) {
                 profile.setName(newName);
                 profile.setType(newType);
+                profile.setTemperatures(temperatures);
+                saveProfilesToFile();
                 break;
             }
         }
@@ -58,12 +72,31 @@ public class ProfileManager {
         return null;
     }
 
-    public Profile getProfileByName(String name) {
-        for (Profile profile : profiles) {
-            if (profile.getName().equals(name)) {
-                return profile;
-            }
+    private void saveProfilesToFile() {
+        try {
+            File file = new File(context.getFilesDir(), "profiles.dat");
+            FileOutputStream fos = new FileOutputStream(file);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(profiles);
+            oos.close();
+            fos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return null;
+    }
+
+    private void loadProfilesFromFile() {
+        try {
+            File file = new File(context.getFilesDir(), "profiles.dat");
+            if (file.exists()) {
+                FileInputStream fis = new FileInputStream(file);
+                ObjectInputStream ois = new ObjectInputStream(fis);
+                profiles = (List<Profile>) ois.readObject();
+                ois.close();
+                fis.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

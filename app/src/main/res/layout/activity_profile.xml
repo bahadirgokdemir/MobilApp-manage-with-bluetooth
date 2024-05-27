@@ -3,38 +3,46 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#f0f0f0">
+    android:padding="16dp">
 
-    <EditText
-        android:id="@+id/profileName"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Profile Name"
-        android:padding="8dp"
-        android:layout_marginTop="16dp"
-        android:layout_centerHorizontal="true" />
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottom_navigation"
+        android:paddingBottom="16dp">
 
-    <EditText
-        android:id="@+id/profileType"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Profile Type"
-        android:padding="8dp"
-        android:layout_marginTop="16dp"
-        android:layout_below="@id/profileName"
-        android:layout_centerHorizontal="true" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
 
-    <Button
-        android:id="@+id/saveProfileButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Save Profile"
-        android:padding="16dp"
-        android:background="@drawable/button_background"
-        android:layout_below="@id/profileType"
-        android:layout_marginTop="16dp"
-        android:layout_centerHorizontal="true" />
+            <EditText
+                android:id="@+id/profileName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Profile Name"
+                android:padding="8dp" />
 
+            <LinearLayout
+                android:id="@+id/fieldsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="16dp">
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/saveProfileButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Save Profile"
+                android:padding="8dp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Alt Navigation Menüsü -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"

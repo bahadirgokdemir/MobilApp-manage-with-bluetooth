@@ -1,74 +1,197 @@
 package com.example.micromobil;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProfileActivity extends AppCompatActivity {
     private ProfileManager profileManager;
-    private String oldProfileName;
+    private LinearLayout fieldsLayout;
+    private List<View> fieldViews;
+    private ArrayAdapter<String> drinkTypeAdapter;
+    private List<String> drinkTypes;
+    private boolean isProfileSaved = false;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) { // Düzeltme yapıldı
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        profileManager = ProfileManager.getInstance();
+        profileManager = ProfileManager.getInstance(this);
+        fieldsLayout = findViewById(R.id.fieldsLayout);
+        fieldViews = new ArrayList<>();
+        drinkTypes = new ArrayList<>();
+        addDefaultDrinkTypes();
 
         EditText profileNameEditText = findViewById(R.id.profileName);
-        EditText profileTypeEditText = findViewById(R.id.profileType);
         Button saveProfileButton = findViewById(R.id.saveProfileButton);
-
-        Intent intent = getIntent();
-        if (intent.hasExtra("profileName")) {
-            oldProfileName = intent.getStringExtra("profileName");
-            Profile profile = profileManager.getProfile(oldProfileName);
-            if (profile != null) {
-                profileNameEditText.setText(profile.getName());
-                profileTypeEditText.setText(profile.getType());
-            }
-        }
 
         saveProfileButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String profileName = profileNameEditText.getText().toString();
-                String profileType = profileTypeEditText.getText().toString();
-
-                if (!profileName.isEmpty() && !profileType.isEmpty()) {
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("profileName", profileName);
-
-                    if (oldProfileName != null) {
-                        resultIntent.putExtra("oldProfileName", oldProfileName);
-                        resultIntent.putExtra("newProfileName", profileName);
-                        resultIntent.putExtra("newProfileType", profileType);
-                    }
-
-                    setResult(RESULT_OK, resultIntent);
-                    finish();
+                if (isProfileSaved) {
+                    return;
                 }
+
+                String profileName = profileNameEditText.getText().toString();
+
+                if (profileName.isEmpty()) {
+                    Toast.makeText(ProfileActivity.this, "Please enter a profile name", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                List<Integer> temperatures = new ArrayList<>();
+                for (View fieldView : fieldViews) {
+                    Spinner profileTypeSpinner = fieldView.findViewById(R.id.profileTypeSpinner);
+                    EditText temperatureField = fieldView.findViewById(R.id.temperatureField);
+
+                    String tempStr = temperatureField.getText().toString();
+                    if (!tempStr.isEmpty()) {
+                        temperatures.add(Integer.parseInt(tempStr));
+                    }
+                }
+
+                Profile profile = new Profile(profileName, "Type", temperatures);
+                profileManager.addProfile(profile);
+
+                // Profile'ı dosyaya yaz
+                writeProfileToFile(profile);
+
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("profileName", profileName);
+                setResult(RESULT_OK, resultIntent);
+                isProfileSaved = true;
+                finish();
             }
         });
+
+        // Initial field
+        addFields(null);
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setOnNavigationItemSelectedListener(this::handleBottomNavigationItemSelected);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.bottom_navigation_menu, menu);
-        return true;
+    private void addDefaultDrinkTypes() {
+        drinkTypes.add("Kola");
+        drinkTypes.add("Çay");
+        drinkTypes.add("Kahve");
+        drinkTypes.add("Soğuk Çay");
+        drinkTypes.add("+ Ekle");  // + Ekle seçeneği
+        drinkTypeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, drinkTypes);
+        drinkTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        return handleBottomNavigationItemSelected(item);
+    public void addFields(View view) {
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View fieldView = inflater.inflate(R.layout.field_item, null);
+
+        Spinner profileTypeSpinner = fieldView.findViewById(R.id.profileTypeSpinner);
+        profileTypeSpinner.setAdapter(drinkTypeAdapter);
+        profileTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position == drinkTypes.size() - 1) {  // "+ Ekle" seçeneğine tıklandıysa
+                    showAddDrinkDialog(profileTypeSpinner);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Seçim yapılmadığında "Kola" varsayılan olarak seçilsin
+                profileTypeSpinner.setSelection(0);
+            }
+        });
+
+        ImageButton addButton = fieldView.findViewById(R.id.addDrinkButton);
+        addButton.setOnClickListener(v -> addFields(null));
+
+        ImageButton deleteButton = fieldView.findViewById(R.id.deleteDrinkButton);
+        deleteButton.setOnClickListener(v -> removeField(fieldView));
+
+        if (fieldsLayout.getChildCount() > 0) {
+            deleteButton.setVisibility(View.VISIBLE);
+        }
+
+        fieldViews.add(fieldView);
+        fieldsLayout.addView(fieldView);
+    }
+
+    private void removeField(View fieldView) {
+        fieldsLayout.removeView(fieldView);
+        fieldViews.remove(fieldView);
+    }
+
+    private void showAddDrinkDialog(Spinner profileTypeSpinner) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Yeni İçecek Ekle");
+
+        final EditText input = new EditText(this);
+        input.setHint("İçecek adı");
+
+        builder.setView(input);
+        builder.setPositiveButton("Ekle", (dialog, which) -> {
+            String newDrink = input.getText().toString();
+            if (!newDrink.isEmpty()) {
+                // İçecek türü listesini güncelle
+                drinkTypes.add(drinkTypes.size() - 1, newDrink);  // "+ Ekle" seçeneğinden önce ekle
+                drinkTypeAdapter.notifyDataSetChanged();
+                profileTypeSpinner.setSelection(drinkTypeAdapter.getPosition(newDrink));
+            } else {
+                profileTypeSpinner.setSelection(0); // Yeni içecek eklenmezse varsayılan seçimi ayarla
+            }
+        });
+        builder.setNegativeButton("İptal", (dialog, which) -> {
+            dialog.cancel();
+            profileTypeSpinner.setSelection(0); // İptal edilirse varsayılan seçimi ayarla
+        });
+
+        builder.show();
+    }
+
+    private void writeProfileToFile(Profile profile) {
+        try {
+            // External storage directory
+            File externalDir = new File(getExternalFilesDir(null), "profiles");
+            if (!externalDir.exists()) {
+                externalDir.mkdirs();
+            }
+
+            File profileFile = new File(externalDir, profile.getName() + ".dat");
+            FileOutputStream fos = new FileOutputStream(profileFile);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(profile);
+            oos.close();
+            fos.close();
+
+            Toast.makeText(this, "Profile saved to " + profileFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to save profile", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private boolean handleBottomNavigationItemSelected(@NonNull MenuItem item) {
@@ -88,6 +211,18 @@ public class ProfileActivity extends AppCompatActivity {
             return true;
         }
 
-        return super.onOptionsItemSelected(item);
+        return false;
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("isProfileSaved", isProfileSaved);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        isProfileSaved = savedInstanceState.getBoolean("isProfileSaved", false);
     }
 }
