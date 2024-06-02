@@ -36,7 +36,7 @@ public class ProfileActivity extends AppCompatActivity {
     private boolean isProfileSaved = false;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) { // Düzeltme yapıldı
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
@@ -207,7 +207,10 @@ public class ProfileActivity extends AppCompatActivity {
             // Search action
             return true;
         } else if (id == R.id.action_drink) {
-            // Drink action
+            Intent intentDrink = new Intent(ProfileActivity.this, DrinkActivity.class);
+            intentDrink.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intentDrink);
+            finish();
             return true;
         }
 
@@ -226,3 +229,4 @@ public class ProfileActivity extends AppCompatActivity {
         isProfileSaved = savedInstanceState.getBoolean("isProfileSaved", false);
     }
 }
+

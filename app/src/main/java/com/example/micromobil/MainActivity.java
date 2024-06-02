@@ -13,6 +13,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -23,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private ProfileManager profileManager;
     private LinearLayout profileListLayout;
     private Button addProfileButton;
+    private String selectedProfileName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,21 +77,38 @@ public class MainActivity extends AppCompatActivity {
     private boolean handleBottomNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
+        Log.d("MainActivity", "BottomNavigation item selected: " + id);
+
         if (id == R.id.action_home) {
-            // Mevcut profillerin tekrar oluşturulmasını engellemek için Activity'i yeniden başlatma
+            Log.d("MainActivity", "Home button clicked");
             finish();
             startActivity(getIntent());
             return true;
         } else if (id == R.id.action_search) {
-            // Search action
+            Log.d("MainActivity", "Search button clicked");
             return true;
         } else if (id == R.id.action_drink) {
-            // Drink action
+            Log.d("MainActivity", "Drink button clicked");
+            if (selectedProfileName == null) {
+                Toast.makeText(this, "Lütfen önce bir profil seçin.", Toast.LENGTH_SHORT).show();
+                Log.d("MainActivity", "No profile selected");
+                return false;
+            }
+            Log.d("MainActivity", "Selected profile: " + selectedProfileName);
+            Intent intent = new Intent(MainActivity.this, DrinkActivity.class);
+            intent.putExtra("profileName", selectedProfileName);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.action_bluetooth_control) {
+            Log.d("MainActivity", "Bluetooth Control button clicked");
+            Intent intent = new Intent(MainActivity.this, BluetoothControlActivity.class);
+            startActivity(intent);
             return true;
         }
 
-        return super.onOptionsItemSelected(item);
+        return false;
     }
+
 
     private void loadProfiles() {
         profileListLayout.removeAllViews();
@@ -127,6 +147,7 @@ public class MainActivity extends AppCompatActivity {
         profileButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                selectedProfileName = profile.getName(); // Profil seçildiğinde güncelle
                 Intent intent = new Intent(MainActivity.this, ProfileDetailActivity.class);
                 intent.putExtra("profileName", profile.getName());
                 startActivity(intent);

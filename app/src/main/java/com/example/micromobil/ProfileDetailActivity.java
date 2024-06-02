@@ -6,6 +6,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -14,12 +15,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class ProfileDetailActivity extends AppCompatActivity {
+    private String profileName;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_detail);
 
-        String profileName = getIntent().getStringExtra("profileName");
+        profileName = getIntent().getStringExtra("profileName");
         TextView profileTitle = findViewById(R.id.profile_title);
         profileTitle.setText(profileName);
 
@@ -37,6 +40,16 @@ public class ProfileDetailActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // Menü butonuna tıklanınca menü seçeneklerini göster
                 openOptionsMenu();
+            }
+        });
+
+        Button addDrinkButton = findViewById(R.id.add_drink_button);
+        addDrinkButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ProfileDetailActivity.this, DrinkActivity.class);
+                intent.putExtra("profileName", profileName);
+                startActivity(intent);
             }
         });
     }
@@ -79,6 +92,9 @@ public class ProfileDetailActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_drink) {
             // Drink action
+            Intent intent = new Intent(ProfileDetailActivity.this, DrinkActivity.class);
+            intent.putExtra("profileName", profileName);
+            startActivity(intent);
             return true;
         }
 
