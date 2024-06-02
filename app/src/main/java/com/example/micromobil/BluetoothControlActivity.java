@@ -200,6 +200,7 @@ public class BluetoothControlActivity extends AppCompatActivity {
             }
         }
     }
+    // TODO : ÖMER VERİLERİ BURAYA GÖNDER BU CİVARDAKİ FONKİSYONLARI DA  İNCELE EKSTRA EKLEMEN GEREKEBİLİR.
 
     private void showTemperatureInputDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
