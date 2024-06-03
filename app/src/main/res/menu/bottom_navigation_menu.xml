@@ -20,8 +20,4 @@
         android:title="Drink"
         app:showAsAction="ifRoom" />
 
-    <item
-        android:id="@+id/action_bluetooth_control"
-        android:icon="@drawable/ic_bluetooth"
-        android:title="Bluetooth Control" />
 </menu>

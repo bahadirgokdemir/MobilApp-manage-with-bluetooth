@@ -25,7 +25,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ProfileActivity extends AppCompatActivity {
     private ProfileManager profileManager;
@@ -63,18 +65,29 @@ public class ProfileActivity extends AppCompatActivity {
                     return;
                 }
 
-                List<Integer> temperatures = new ArrayList<>();
+                // Profil zaten mevcut mu kontrol et
+                if (profileManager.getProfile(profileName) != null) {
+                    Toast.makeText(ProfileActivity.this, "Profile already exists", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Map<String, List<Integer>> drinkTemperatures = new HashMap<>();
                 for (View fieldView : fieldViews) {
                     Spinner profileTypeSpinner = fieldView.findViewById(R.id.profileTypeSpinner);
                     EditText temperatureField = fieldView.findViewById(R.id.temperatureField);
 
+                    String drinkType = profileTypeSpinner.getSelectedItem().toString();
                     String tempStr = temperatureField.getText().toString();
                     if (!tempStr.isEmpty()) {
-                        temperatures.add(Integer.parseInt(tempStr));
+                        int temperature = Integer.parseInt(tempStr);
+                        if (!drinkTemperatures.containsKey(drinkType)) {
+                            drinkTemperatures.put(drinkType, new ArrayList<>());
+                        }
+                        drinkTemperatures.get(drinkType).add(temperature);
                     }
                 }
 
-                Profile profile = new Profile(profileName, "Type", temperatures);
+                Profile profile = new Profile(profileName, drinkTemperatures);
                 profileManager.addProfile(profile);
 
                 // Profile'ı dosyaya yaz
@@ -229,4 +242,3 @@ public class ProfileActivity extends AppCompatActivity {
         isProfileSaved = savedInstanceState.getBoolean("isProfileSaved", false);
     }
 }
-

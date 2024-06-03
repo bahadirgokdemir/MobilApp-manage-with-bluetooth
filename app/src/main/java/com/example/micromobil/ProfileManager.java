@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ProfileManager {
     private static ProfileManager instance;
@@ -47,12 +48,11 @@ public class ProfileManager {
         }
     }
 
-    public void updateProfile(String oldName, String newName, String newType, List<Integer> temperatures) {
+    public void updateProfile(String oldName, String newName, Map<String, List<Integer>> drinkTemperatures) {
         for (Profile profile : profiles) {
             if (profile.getName().equals(oldName)) {
                 profile.setName(newName);
-                profile.setType(newType);
-                profile.setTemperatures(temperatures);
+                profile.setDrinkTemperatures(drinkTemperatures);
                 saveProfilesToFile();
                 break;
             }

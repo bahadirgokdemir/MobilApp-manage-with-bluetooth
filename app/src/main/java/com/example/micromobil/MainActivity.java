@@ -7,6 +7,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -19,7 +20,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private ProfileManager profileManager;
@@ -99,25 +102,18 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("profileName", selectedProfileName);
             startActivity(intent);
             return true;
-        } else if (id == R.id.action_bluetooth_control) {
-            Log.d("MainActivity", "Bluetooth Control button clicked");
-            Intent intent = new Intent(MainActivity.this, BluetoothControlActivity.class);
-            startActivity(intent);
-            return true;
         }
 
         return false;
     }
 
-
     private void loadProfiles() {
         profileListLayout.removeAllViews();
 
-        // Varsayılan "Home Profile" profilini ekle
-        Profile homeProfile = new Profile("Home Profile", "Default", new ArrayList<>());
-        addProfileButton(homeProfile);
-
         List<Profile> profiles = profileManager.getProfiles();
+        Log.d("ProfileManager", "Loaded profiles: " + profiles.size());
+        Log.d("ProfileManager", "Profiles: " + profiles);
+
         for (Profile profile : profiles) {
             addProfileButton(profile);
         }
@@ -154,45 +150,42 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // "Home Profile" için silme ve düzenleme butonlarını eklemiyoruz
-        if (!profile.getName().equals("Home Profile")) {
-            ImageButton editButton = new ImageButton(this);
-            editButton.setImageResource(R.drawable.ic_edit);
-            editButton.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            ));
-            editButton.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-            editButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Edit profile action
-                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-                    intent.putExtra("profileName", profile.getName());
-                    startActivityForResult(intent, 2);
-                }
-            });
+        ImageButton editButton = new ImageButton(this);
+        editButton.setImageResource(R.drawable.ic_edit);
+        editButton.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+        editButton.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+        editButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Edit profile action
+                Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+                intent.putExtra("profileName", profile.getName());
+                startActivityForResult(intent, 2);
+            }
+        });
 
-            ImageButton deleteButton = new ImageButton(this);
-            deleteButton.setImageResource(R.drawable.ic_delete);
-            deleteButton.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            ));
-            deleteButton.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-            deleteButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    profileManager.removeProfile(profile.getName());
-                    loadProfiles();
-                }
-            });
-
-            profileItemLayout.addView(editButton);
-            profileItemLayout.addView(deleteButton);
-        }
+        ImageButton deleteButton = new ImageButton(this);
+        deleteButton.setImageResource(R.drawable.ic_delete);
+        deleteButton.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+        deleteButton.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                profileManager.removeProfile(profile.getName());
+                loadProfiles();
+            }
+        });
 
         profileItemLayout.addView(profileButton);
+        profileItemLayout.addView(editButton);
+        profileItemLayout.addView(deleteButton);
+
         profileListLayout.addView(profileItemLayout);
     }
 
@@ -201,16 +194,18 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == RESULT_OK) {
             String profileName = data.getStringExtra("profileName");
-            Profile profile = new Profile(profileName, "Type", new ArrayList<>()); // Profile tipi eklenmeli
+            Map<String, List<Integer>> drinkTemperatures = new HashMap<>();
+            Profile profile = new Profile(profileName, drinkTemperatures); // Profil tipi eklenmeli
             profileManager.addProfile(profile);
             Log.d("ProfileManager", "Profile added: " + profile.getName());
             loadProfiles();
         } else if (requestCode == 2 && resultCode == RESULT_OK) {
             String oldProfileName = data.getStringExtra("oldProfileName");
             String newProfileName = data.getStringExtra("newProfileName");
-            String newProfileType = data.getStringExtra("newProfileType");
-            profileManager.updateProfile(oldProfileName, newProfileName, newProfileType, new ArrayList<>());
+            Map<String, List<Integer>> drinkTemperatures = new HashMap<>();
+            profileManager.updateProfile(oldProfileName, newProfileName, drinkTemperatures);
             loadProfiles();
         }
     }
+
 }

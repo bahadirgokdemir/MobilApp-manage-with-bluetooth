@@ -8,15 +8,19 @@ import java.util.Map;
 
 public class Profile implements Serializable {
     private String name;
-    private String type;
     private Map<String, List<Integer>> drinks;
+    private Map<String, List<Integer>> drinkTemperatures;
 
-    public Profile(String name, String type, List<Integer> temperatures) {
+    public Profile(String name, List<Integer> temperatures) {
         this.name = name;
-        this.type = type;
         this.drinks = new HashMap<>();
-        this.drinks.put(type, temperatures); // Varsayılan içecek tipi ve sıcaklıkları ekle
+        this.drinks.put(name, temperatures);
     }
+    public Profile(String name, Map<String, List<Integer>> drinks) {
+        this.name = name;
+        this.drinks = drinks;
+    }
+
 
     public String getName() {
         return name;
@@ -26,20 +30,12 @@ public class Profile implements Serializable {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public List<Integer> getTemperatures() {
-        return drinks.getOrDefault(type, new ArrayList<>());
+        return drinks.getOrDefault(name, new ArrayList<>());
     }
 
     public void setTemperatures(List<Integer> temperatures) {
-        this.drinks.put(type, temperatures);
+        this.drinks.put(name, temperatures);
     }
 
     public List<String> getDrinks() {
@@ -48,5 +44,11 @@ public class Profile implements Serializable {
 
     public List<Integer> getTemperaturesForDrink(String drink) {
         return drinks.getOrDefault(drink, new ArrayList<>());
+    }
+
+    public void setDrinks(Map<String, List<Integer>> drinkTemperatures) {
+    }
+    public void setDrinkTemperatures(Map<String, List<Integer>> drinkTemperatures) {
+        this.drinkTemperatures = drinkTemperatures;
     }
 }
