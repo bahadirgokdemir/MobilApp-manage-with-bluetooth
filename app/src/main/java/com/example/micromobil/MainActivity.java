@@ -102,6 +102,11 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("profileName", selectedProfileName);
             startActivity(intent);
             return true;
+        } else if (id == R.id.action_voice_over) {
+            Log.d("MainActivity", "Voice Over button clicked");
+            Intent intent = new Intent(MainActivity.this, VoiceCommandActivity.class);
+            startActivity(intent);
+            return true;
         }
 
         return false;

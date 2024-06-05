@@ -19,5 +19,8 @@
         android:icon="@drawable/ic_drink"
         android:title="Drink"
         app:showAsAction="ifRoom" />
-
+    <item
+        android:id="@+id/action_voice_over"
+        android:icon="@drawable/ic_voice_over"
+        android:title="Voice" />
 </menu>
