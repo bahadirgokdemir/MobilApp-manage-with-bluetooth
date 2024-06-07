@@ -12,6 +12,7 @@ public interface ApiService {
     @Multipart
     @POST("/upload")
     Call<ResponseBody> uploadAudio(
+            @Part("file_path") RequestBody filePath,
             @Part MultipartBody.Part file
     );
 }

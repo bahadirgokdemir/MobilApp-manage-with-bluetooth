@@ -1,36 +1,34 @@
 package com.example.micromobil;
 
 import android.util.Log;
-
-import java.io.IOException;
+import com.arthenica.ffmpegkit.FFmpegKit;
+import com.arthenica.ffmpegkit.FFmpegSession;
+import com.arthenica.ffmpegkit.ReturnCode;
 
 public class AudioConverter {
-    public static boolean convert3gpToFlac(String inputFilePath, String outputFilePath) {
+
+    public static boolean convert3gpToWav(String inputFilePath, String outputFilePath) {
         try {
-            // FFmpeg komutunu oluştur
-            String[] command = {"ffmpeg", "-i", inputFilePath, "-c:a", "flac", outputFilePath};
-            System.out.println("FFmpeg Command: " + String.join(" ", command));
+            // FFmpeg komutunu oluştur ve overwrite özelliğini ekle
+            String command = String.format("-y -i %s -acodec pcm_s16le -ar 44100 -ac 2 %s", inputFilePath, outputFilePath);
+
+            Log.w("AudioConverter", "FFmpeg command: " + command);
+
             // FFmpeg'i çağır ve dönüşümü başlat
-            Process process = new ProcessBuilder(command).start();
+            FFmpegSession session = FFmpegKit.execute(command);
 
-            // Dönüşüm sürecini bekle
-            int exitCode = process.waitFor();
-
-            return exitCode == 0;  // Dönüşüm başarılı ise true döndür
-        } catch (IOException | InterruptedException e) {
+            // Dönüşüm sürecini kontrol et
+            if (ReturnCode.isSuccess(session.getReturnCode())) {
+                Log.i("AudioConverter", "Conversion successful");
+                return true;  // Dönüşüm başarılı
+            } else {
+                Log.e("AudioConverter", "Conversion failed with return code: " + session.getReturnCode());
+                Log.e("AudioConverter", "FFmpeg output: " + session.getOutput());
+                return false;  // Dönüşüm başarısız
+            }
+        } catch (Exception e) {
             e.printStackTrace();
-            return false;  // Dönüşüm başarısız ise false döndür
-        }
-    }
-
-    public static void main(String[] args) {
-        String inputFilePath = "input.3gp";
-        String outputFilePath = "output.flac";
-
-        if (convert3gpToFlac(inputFilePath, outputFilePath)) {
-            System.out.println("Dönüşüm başarıyla tamamlandı!");
-        } else {
-            System.out.println("Dönüşüm başarısız!");
+            return false;  // Dönüşüm sırasında bir hata oluştu
         }
     }
 }

@@ -28,12 +28,13 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import java.security.cert.CertificateException;
+import java.util.concurrent.TimeUnit;
+
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-
 public class VoiceCommandActivity extends AppCompatActivity {
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
     private MediaRecorder recorder;
@@ -91,6 +92,9 @@ public class VoiceCommandActivity extends AppCompatActivity {
             SSLContext sslContext = SSLContext.getInstance("SSL");
             sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
             okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
+                    .connectTimeout(60, TimeUnit.SECONDS)  // Bağlanma zaman aşımı süresi (60 saniye)
+                    .readTimeout(60, TimeUnit.SECONDS)    // Okuma zaman aşımı süresi (60 saniye)
+                    .writeTimeout(60, TimeUnit.SECONDS)  // Yazma zaman aşımı süresi (60 saniye)
                     .sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager)trustAllCerts[0])
                     .hostnameVerifier(new HostnameVerifier() {
                         @Override
@@ -143,52 +147,71 @@ public class VoiceCommandActivity extends AppCompatActivity {
         recorder.release();
         recorder = null;
 
-        uploadAudioFile(fileName);
+        // .wav dosyasının adını ve yolunu belirle
+        String wavFileName = fileName.replace(".3gp", ".wav");
+        String wavFilePath = wavFileName;
+
+        // .3gp dosyasını .wav formatına dönüştür
+        if (AudioConverter.convert3gpToWav(fileName, wavFilePath)) {
+            Log.d("VoiceCommandActivity", "Dönüşüm başarıyla tamamlandı!");
+            // Dönüşüm başarılı ise yükleme işlemini gerçekleştir
+            uploadAudioFile(wavFilePath);
+        } else {
+            Log.e("VoiceCommandActivity", "Dönüşüm başarısız!");
+            // Dönüşüm başarısız olduğunda uygun bir işlem yapabilirsiniz
+        }
     }
 
     private void uploadAudioFile(String audioFilePath) {
         Retrofit retrofit = createRetrofit();
-
         ApiService apiService = retrofit.create(ApiService.class);
 
         File audioFile = new File(audioFilePath);
         Log.d("VoiceCommandActivity", "File audioFile adı: " + audioFile.getName());
-        RequestBody requestFile = RequestBody.create(MediaType.parse("audio/3gp"), audioFile);
+
+        // Dosya yolunu içeren RequestBody oluştur
+        RequestBody filePath = RequestBody.create(MediaType.parse("text/plain"), audioFilePath);
+
+        // Dosyanın kendisini içeren RequestBody oluştur
+        RequestBody requestFile = RequestBody.create(MediaType.parse("audio/wav"), audioFile);
         Log.d("VoiceCommandActivity", "request file türü: " + requestFile.contentType());
+
+        // MultipartBody.Part oluştur
         MultipartBody.Part body = MultipartBody.Part.createFormData("file", audioFile.getName(), requestFile);
         Log.d("VoiceCommandActivity", "request body türü: " + body.body().contentType());
-        Call<ResponseBody> call = apiService.uploadAudio(body);
+
+        // API çağrısını gerçekleştir
+        Call<ResponseBody> call = apiService.uploadAudio(filePath, body);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     try {
+                        Log.d("VoiceCommandActivity", "Response successful");
                         String result = response.body().string();
-                        textViewResult.setText("Text: " + result);  // Yanıtı TextView'de göster
+                        Log.d("VoiceCommandActivity", "Response body: " + result);
+
+                        textViewResult.setText(result);  // Yanıtı TextView'de göster
                         Toast.makeText(VoiceCommandActivity.this, "Text: " + result, Toast.LENGTH_LONG).show();
                     } catch (IOException e) {
                         Log.e("VoiceCommandActivity", "Response reading failed: " + e.getMessage());
                         e.printStackTrace();
                     }
                 } else {
-                    Log.e("VoiceCommandActivity", "Upload failed: " + response.message());
+                    Log.e("VoiceCommandActivity", "Upload failed on response else: " + response.message());
                     textViewResult.setText("Failed to upload: " + response.message());
                     Log.e("VoiceCommandActivity", "Response code: " + response.code());
-                    try {
-                        Log.e("VoiceCommandActivity", "Response error body: " + response.errorBody().string());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Log.e("VoiceCommandActivity", "Upload failed: " + t.getMessage());
-                textViewResult.setText("Upload failed: " + t.getMessage());
+                textViewResult.setText("Upload failed on failure: " + t.getMessage());
             }
         });
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
