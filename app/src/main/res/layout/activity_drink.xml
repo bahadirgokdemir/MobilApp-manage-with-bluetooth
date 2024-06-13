@@ -19,14 +19,21 @@
     <Button
         android:id="@+id/connect_button"
         android:layout_width="wrap_content"
-        android:layout_height="35dp"
+        android:layout_height="wrap_content"
         android:text="Bağlan"
         android:textColor="@android:color/white"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="16dp"
-        android:paddingHorizontal="8dp"
-        android:paddingVertical="1dp"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="12dp"
         android:elevation="4dp" />
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/drink_list_layout"

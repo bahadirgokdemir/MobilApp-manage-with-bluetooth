@@ -4,12 +4,12 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -80,6 +80,7 @@ public class DrinkActivity extends AppCompatActivity {
         setContentView(R.layout.activity_drink);
         lineChart = findViewById(R.id.lineChart);
 
+
         drinkListLayout = findViewById(R.id.drink_list_layout);
         profileManager = ProfileManager.getInstance(this);
         deviceSpinner = findViewById(R.id.device_spinner);
@@ -104,12 +105,16 @@ public class DrinkActivity extends AppCompatActivity {
         btnConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                btnConnect.setEnabled(false);
+                btnConnect.setText("Bağlanıyor...");
                 int position = deviceSpinner.getSelectedItemPosition();
                 if (position != AdapterView.INVALID_POSITION) {
                     selectedDevice = bluetoothDeviceArrayList.get(position);
                     setupBluetoothConnection();
                 } else {
                     Toast.makeText(DrinkActivity.this, "Lütfen bir cihaz seçin", Toast.LENGTH_SHORT).show();
+                    btnConnect.setEnabled(true);
+                    btnConnect.setText("Bağlan");
                 }
             }
         });
@@ -121,7 +126,7 @@ public class DrinkActivity extends AppCompatActivity {
             }
         });
 
-        handler = new Handler(Looper.getMainLooper());
+        handler = new Handler();
         buffer = new byte[1024];
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -270,13 +275,11 @@ public class DrinkActivity extends AppCompatActivity {
 
     private void setupBluetoothConnection() {
         try {
-            // Bluetooth CONNECT iznini kontrol et
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, REQUEST_BLUETOOTH_PERMISSIONS);
                 return;
             }
 
-            // Mevcut bağlantıyı kapat
             if (bluetoothSocket != null) {
                 try {
                     bluetoothSocket.close();
@@ -285,17 +288,19 @@ public class DrinkActivity extends AppCompatActivity {
                 }
             }
 
-            // Yeni soket oluştur
             bluetoothSocket = selectedDevice.createInsecureRfcommSocketToServiceRecord(MY_UUID);
             Log.d("DrinkActivity", "setupBluetoothConnection: " + selectedDevice.getName());
 
-            bluetoothAdapter.cancelDiscovery(); // Bağlantı öncesi keşfi durdur
+            bluetoothAdapter.cancelDiscovery();
 
             try {
                 bluetoothSocket.connect();
                 outputStream = bluetoothSocket.getOutputStream();
                 inputStream = bluetoothSocket.getInputStream();
                 Toast.makeText(this, "Bağlantı kuruldu: " + selectedDevice.getName(), Toast.LENGTH_SHORT).show();
+
+                Intent serviceIntent = new Intent(this, BluetoothService.class);
+                startService(serviceIntent);
 
                 new Thread(new Runnable() {
                     public void run() {
@@ -309,11 +314,12 @@ public class DrinkActivity extends AppCompatActivity {
                                     }
                                 });
                             } catch (IOException e) {
-                                // Bağlantı kesildiğinde hata mesajı göster
                                 handler.post(new Runnable() {
                                     public void run() {
                                         Toast.makeText(DrinkActivity.this, "Bağlantı kesildi", Toast.LENGTH_SHORT).show();
                                         responseTextView.setText("");
+                                        btnConnect.setEnabled(true);
+                                        btnConnect.setText("Bağlan");
                                     }
                                 });
                                 break;
@@ -322,7 +328,6 @@ public class DrinkActivity extends AppCompatActivity {
                     }
                 }).start();
             } catch (IOException connectException) {
-                // Bağlantı başarısız olduysa, soketi kapat ve hatayı bildir
                 try {
                     bluetoothSocket.close();
                 } catch (IOException closeException) {
@@ -330,10 +335,14 @@ public class DrinkActivity extends AppCompatActivity {
                 }
                 connectException.printStackTrace();
                 Toast.makeText(this, "Bağlantı başarısız", Toast.LENGTH_SHORT).show();
+                btnConnect.setEnabled(true);
+                btnConnect.setText("Bağlan");
             }
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(this, "Bağlantı başarısız", Toast.LENGTH_SHORT).show();
+            btnConnect.setEnabled(true);
+            btnConnect.setText("Bağlan");
         }
     }
 
@@ -345,18 +354,6 @@ public class DrinkActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
                 Toast.makeText(this, "Komut gönderilemedi", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    private void sendTemperature(String temperature) {
-        if (outputStream != null) {
-            try {
-                outputStream.write(temperature.getBytes());
-                Toast.makeText(this, "Sıcaklık gönderildi", Toast.LENGTH_SHORT).show();
-            } catch (IOException e) {
-                e.printStackTrace();
-                Toast.makeText(this, "Sıcaklık gönderilemedi", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -378,6 +375,18 @@ public class DrinkActivity extends AppCompatActivity {
         builder.setNegativeButton("İptal", (dialog, which) -> dialog.cancel());
 
         builder.show();
+    }
+
+    private void sendTemperature(String temperature) {
+        if (outputStream != null) {
+            try {
+                outputStream.write(temperature.getBytes());
+                Toast.makeText(this, "Sıcaklık gönderildi", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Sıcaklık gönderilemedi", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     @Override
@@ -406,47 +415,15 @@ public class DrinkActivity extends AppCompatActivity {
     }
 
     private void setupChart() {
-        // Dummy veriler
         List<String> drinkNames = new ArrayList<>();
         drinkNames.add("Kola");
         drinkNames.add("Soğuk Çay");
         drinkNames.add("Kahve");
 
         List<Entry> entries = new ArrayList<>();
-        entries.add(new Entry(0, 25)); // Kola için sıcaklık değeri
-        entries.add(new Entry(1, 2));  // Soğuk Çay için sıcaklık değeri
-        entries.add(new Entry(2, 60)); // Kahve için sıcaklık değeri
-
-        LineDataSet dataSet = new LineDataSet(entries, "Drink Temperatures");
-        dataSet.setColor(Color.BLUE);
-        dataSet.setValueTextColor(Color.BLACK);
-
-        LineData lineData = new LineData(dataSet);
-        lineChart.setData(lineData);
-
-        XAxis xAxis = lineChart.getXAxis();
-        xAxis.setValueFormatter(new IndexAxisValueFormatter(drinkNames)); // Yatay eksende içecek isimlerini gösterir
-        xAxis.setGranularity(1f);
-        xAxis.setGranularityEnabled(true);
-
-        Description description = new Description();
-        description.setText("Drink Temperatures");
-        lineChart.setDescription(description);
-
-        lineChart.invalidate(); // refresh
-    }
-
-    public void setupChartDynamic() {
-        // Dummy veriler
-        List<String> drinkNames = new ArrayList<>();
-        drinkNames.add("Default");
-        drinkNames.add("Current");
-        String incomingMessage = null;
-        float floatValue = Float.parseFloat(incomingMessage);
-
-        List<Entry> entries = new ArrayList<>();
         entries.add(new Entry(0, 25));
-        entries.add(new Entry(1, floatValue));
+        entries.add(new Entry(1, 2));
+        entries.add(new Entry(2, 60));
 
         LineDataSet dataSet = new LineDataSet(entries, "Drink Temperatures");
         dataSet.setColor(Color.BLUE);
@@ -456,7 +433,7 @@ public class DrinkActivity extends AppCompatActivity {
         lineChart.setData(lineData);
 
         XAxis xAxis = lineChart.getXAxis();
-        xAxis.setValueFormatter(new IndexAxisValueFormatter(drinkNames)); // Yatay eksende içecek isimlerini gösterir
+        xAxis.setValueFormatter(new IndexAxisValueFormatter(drinkNames));
         xAxis.setGranularity(1f);
         xAxis.setGranularityEnabled(true);
 
@@ -464,6 +441,6 @@ public class DrinkActivity extends AppCompatActivity {
         description.setText("Drink Temperatures");
         lineChart.setDescription(description);
 
-        lineChart.invalidate(); // refresh
+        lineChart.invalidate();
     }
 }
