@@ -28,6 +28,16 @@
         android:paddingVertical="12dp"
         android:elevation="4dp" />
 
+    <LinearLayout
+        android:id="@+id/drink_list_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#FFFFFF"
+        android:elevation="4dp"
+        android:padding="16dp"
+        android:layout_marginBottom="16dp" />
+
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/lineChart"
         android:layout_width="match_parent"
@@ -38,40 +48,31 @@
         android:elevation="4dp" />
 
     <LinearLayout
-        android:id="@+id/drink_list_layout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        android:visibility="invisible"
-        android:background="#FFFFFF"
-        android:elevation="4dp"
-        android:padding="16dp"
-        android:layout_marginBottom="16dp" />
-
-    <TextView
-        android:id="@+id/response_text"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:text="Response"
-        android:textColor="#424242"
-        android:textSize="16sp"
-        android:padding="16dp"
-        android:visibility="invisible"
-        android:background="#FFFFFF"
-        android:elevation="4dp"
-        android:layout_marginBottom="16dp" />
-
-    <Button
-        android:id="@+id/btnStop"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Stop"
-        android:textColor="@android:color/white"
-        android:layout_gravity="end"
-        android:layout_margin="16dp"
-        android:paddingHorizontal="24dp"
-        android:paddingVertical="12dp"
-        android:elevation="4dp" />
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp"
+        android:gravity="end">
+
+        <TextView
+            android:id="@+id/response_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Response"
+            android:textColor="#424242"
+            android:textSize="16sp"
+            android:layout_marginEnd="16dp" />
+
+        <Button
+            android:id="@+id/btnStop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stop"
+            android:textColor="@android:color/white"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="12dp"
+            android:elevation="4dp" />
+    </LinearLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"

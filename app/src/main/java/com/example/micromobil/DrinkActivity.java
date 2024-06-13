@@ -42,7 +42,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,10 +74,8 @@ public class DrinkActivity extends AppCompatActivity {
 
     private LineChart lineChart;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drink);
         lineChart = findViewById(R.id.lineChart);
@@ -92,7 +89,7 @@ public class DrinkActivity extends AppCompatActivity {
 
         deviceArrayList = new ArrayList<>();
         bluetoothDeviceArrayList = new ArrayList<>();
-        deviceListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, deviceArrayList);
+        deviceListAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, deviceArrayList);
         deviceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         deviceSpinner.setAdapter(deviceListAdapter);
 
@@ -147,7 +144,6 @@ public class DrinkActivity extends AppCompatActivity {
         if (id == R.id.action_home) {
             finish();
             return true;
-
         } else if (id == R.id.action_drink) {
             // Drink işlemleri
             return true;
@@ -157,12 +153,14 @@ public class DrinkActivity extends AppCompatActivity {
 
     private void loadDrinks() {
         drinkListLayout.removeAllViews();
+        drinkListLayout.setVisibility(View.VISIBLE);
+        responseTextView.setVisibility(View.VISIBLE);
+
         Log.d("DrinkActivity", "loadDrinks: profiles size = " + profileManager.getProfiles().size());
 
         List<Profile> profiles = profileManager.getProfiles();
         Map<String, Profile> profileMap = new HashMap<>();
 
-        // Profil adlarını ve profil objelerini bir haritada saklayalım
         for (Profile profile : profiles) {
             if (!profileMap.containsKey(profile.getName())) {
                 profileMap.put(profile.getName(), profile);
@@ -183,14 +181,12 @@ public class DrinkActivity extends AppCompatActivity {
 
             Log.d("DrinkActivity", "Profile: " + profile.getName());
 
-            // Profil başlığını ekle
             TextView profileNameTextView = new TextView(this);
             profileNameTextView.setText(profile.getName());
             profileNameTextView.setTextSize(20);
             profileNameTextView.setTypeface(null, Typeface.BOLD);
-            profileNameTextView.setPadding(0, 16, 0, 8); // Üst ve alt padding ekledik
+            profileNameTextView.setPadding(0, 16, 0, 8);
 
-            // Çizgi ekle
             View lineView = new View(this);
             lineView.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -237,8 +233,6 @@ public class DrinkActivity extends AppCompatActivity {
         }
     }
 
-
-
     private void checkPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ||
@@ -252,7 +246,6 @@ public class DrinkActivity extends AppCompatActivity {
             listPairedDevices();
         }
     }
-
 
     private void listPairedDevices() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
@@ -343,7 +336,6 @@ public class DrinkActivity extends AppCompatActivity {
             Toast.makeText(this, "Bağlantı başarısız", Toast.LENGTH_SHORT).show();
         }
     }
-
 
     private void sendCommand(String command) {
         if (outputStream != null) {
@@ -474,5 +466,4 @@ public class DrinkActivity extends AppCompatActivity {
 
         lineChart.invalidate(); // refresh
     }
-
 }
