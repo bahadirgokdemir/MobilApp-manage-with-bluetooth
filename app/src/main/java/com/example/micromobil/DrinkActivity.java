@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -27,6 +28,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.io.IOException;
@@ -65,14 +73,18 @@ public class DrinkActivity extends AppCompatActivity {
     private Button btnStop;
     private Button btnConnect;
 
+    private LineChart lineChart;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drink);
+        lineChart = findViewById(R.id.lineChart);
 
         drinkListLayout = findViewById(R.id.drink_list_layout);
         profileManager = ProfileManager.getInstance(this);
-
         deviceSpinner = findViewById(R.id.device_spinner);
         btnStop = findViewById(R.id.btnStop);
         btnConnect = findViewById(R.id.connect_button);
@@ -124,6 +136,7 @@ public class DrinkActivity extends AppCompatActivity {
         });
 
         loadDrinks();
+        setupChart();
     }
 
     private boolean handleBottomNavigationItemSelected(@NonNull MenuItem item) {
@@ -134,9 +147,7 @@ public class DrinkActivity extends AppCompatActivity {
         if (id == R.id.action_home) {
             finish();
             return true;
-        } else if (id == R.id.action_search) {
-            // Arama işlemleri
-            return true;
+
         } else if (id == R.id.action_drink) {
             // Drink işlemleri
             return true;
@@ -401,4 +412,67 @@ public class DrinkActivity extends AppCompatActivity {
             }
         }
     }
+
+    private void setupChart() {
+        // Dummy veriler
+        List<String> drinkNames = new ArrayList<>();
+        drinkNames.add("Kola");
+        drinkNames.add("Soğuk Çay");
+        drinkNames.add("Kahve");
+
+        List<Entry> entries = new ArrayList<>();
+        entries.add(new Entry(0, 25)); // Kola için sıcaklık değeri
+        entries.add(new Entry(1, 2));  // Soğuk Çay için sıcaklık değeri
+        entries.add(new Entry(2, 60)); // Kahve için sıcaklık değeri
+
+        LineDataSet dataSet = new LineDataSet(entries, "Drink Temperatures");
+        dataSet.setColor(Color.BLUE);
+        dataSet.setValueTextColor(Color.BLACK);
+
+        LineData lineData = new LineData(dataSet);
+        lineChart.setData(lineData);
+
+        XAxis xAxis = lineChart.getXAxis();
+        xAxis.setValueFormatter(new IndexAxisValueFormatter(drinkNames)); // Yatay eksende içecek isimlerini gösterir
+        xAxis.setGranularity(1f);
+        xAxis.setGranularityEnabled(true);
+
+        Description description = new Description();
+        description.setText("Drink Temperatures");
+        lineChart.setDescription(description);
+
+        lineChart.invalidate(); // refresh
+    }
+
+    public void setupChartDynamic() {
+        // Dummy veriler
+        List<String> drinkNames = new ArrayList<>();
+        drinkNames.add("Default");
+        drinkNames.add("Current");
+        String incomingMessage = null;
+        float floatValue = Float.parseFloat(incomingMessage);
+
+        List<Entry> entries = new ArrayList<>();
+        entries.add(new Entry(0, 25));
+        entries.add(new Entry(1, floatValue));
+
+        LineDataSet dataSet = new LineDataSet(entries, "Drink Temperatures");
+        dataSet.setColor(Color.BLUE);
+        dataSet.setValueTextColor(Color.BLACK);
+
+        LineData lineData = new LineData(dataSet);
+        lineChart.setData(lineData);
+
+        XAxis xAxis = lineChart.getXAxis();
+        xAxis.setValueFormatter(new IndexAxisValueFormatter(drinkNames)); // Yatay eksende içecek isimlerini gösterir
+        xAxis.setGranularity(1f);
+        xAxis.setGranularityEnabled(true);
+
+        Description description = new Description();
+        description.setText("Drink Temperatures");
+        lineChart.setDescription(description);
+
+        lineChart.invalidate(); // refresh
+    }
+
 }

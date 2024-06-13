@@ -86,10 +86,7 @@ public class MainActivity extends AppCompatActivity {
             finish();
             startActivity(getIntent());
             return true;
-        } else if (id == R.id.action_search) {
-            Log.d("MainActivity", "Search button clicked");
-            return true;
-        } else if (id == R.id.action_drink) {
+        }  else if (id == R.id.action_drink) {
             Log.d("MainActivity", "Drink button clicked");
             if (selectedProfileName == null) {
                 Toast.makeText(this, "Lütfen önce bir profil seçin.", Toast.LENGTH_SHORT).show();

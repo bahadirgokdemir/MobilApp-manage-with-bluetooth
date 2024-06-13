@@ -28,7 +28,6 @@ android {
     }
 }
 dependencies {
-
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -42,4 +41,5 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
 
+    implementation(libs.mpandroidchart)  // MPAndroidChart kütüphanesi
 }
