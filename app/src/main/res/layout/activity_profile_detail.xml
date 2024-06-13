@@ -2,7 +2,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E8F5E9"
+    android:background="#F5F5F5"
     android:padding="16dp">
 
     <ImageView
@@ -11,7 +11,7 @@
         android:layout_height="48dp"
         android:layout_alignParentStart="true"
         android:layout_marginBottom="8dp"
-        android:src="@drawable/ic_launcher_foreground" />
+        android:src="@drawable/bardak_icon" />
 
     <TextView
         android:id="@+id/company_name"
@@ -20,9 +20,10 @@
         android:layout_toEndOf="@id/logo"
         android:layout_alignBottom="@id/logo"
         android:layout_marginStart="8dp"
-        android:text="Larana, Inc."
+        android:text="Akıllı Bardak"
         android:textSize="18sp"
-        android:textColor="#4CAF50" />
+        android:textColor="#616161"
+        android:textStyle="bold" />
 
     <ImageButton
         android:id="@+id/menu_button"
@@ -43,9 +44,10 @@
         android:gravity="center"
         android:text="HOME MODULE"
         android:textSize="24sp"
-        android:textColor="@android:color/black"
+        android:textColor="#212121"
         android:background="@drawable/border_background"
-        android:padding="12dp"/>
+        android:padding="12dp"
+        android:textStyle="bold"/>
 
     <EditText
         android:id="@+id/search_drink"
@@ -54,9 +56,10 @@
         android:layout_below="@id/profile_title"
         android:layout_marginTop="8dp"
         android:hint="Search Drink"
-        android:padding="8dp"
+        android:padding="12dp"
         android:textSize="14sp"
-        android:background="@drawable/search_background" />
+        android:background="@drawable/search_background"
+        android:elevation="2dp"/>
 
     <TextView
         android:id="@+id/special_drink_label"
@@ -66,10 +69,11 @@
         android:layout_marginTop="8dp"
         android:text="Special Drink"
         android:textSize="18sp"
-        android:textColor="#4CAF50"
+        android:textColor="#424242"
         android:background="@drawable/border_background"
-        android:padding="8dp"
-        android:gravity="center"/>
+        android:padding="12dp"
+        android:gravity="center"
+        android:textStyle="bold"/>
 
     <LinearLayout
         android:id="@+id/special_drink_list"
@@ -77,7 +81,10 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_below="@id/special_drink_label"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:elevation="2dp"
+        android:padding="8dp">
 
         <!-- Örnek içecek öğeleri -->
         <LinearLayout
@@ -94,7 +101,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tea" />
+                android:text="Tea"
+                android:textSize="14sp"
+                android:textColor="#212121"
+                android:gravity="center"/>
         </LinearLayout>
 
         <LinearLayout
@@ -111,7 +121,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cola" />
+                android:text="Cola"
+                android:textSize="14sp"
+                android:textColor="#212121"
+                android:gravity="center"/>
         </LinearLayout>
 
         <LinearLayout
@@ -128,7 +141,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Menu 03 - $18" />
+                android:text="Menu 03 - $18"
+                android:textSize="14sp"
+                android:textColor="#212121"
+                android:gravity="center"/>
         </LinearLayout>
     </LinearLayout>
 
@@ -140,7 +156,9 @@
         android:layout_marginTop="8dp"
         android:text="Add Drink"
         android:background="@drawable/button_background"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/white"
+        android:padding="12dp"
+        android:elevation="2dp"/>
 
     <!-- Alt Navigation Menüsü -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -149,5 +167,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="?android:attr/windowBackground"
-        app:menu="@menu/bottom_navigation_menu" />
+        app:itemIconTint="@color/navigationItemColor"
+        app:itemTextColor="@color/navigationItemColor"
+        app:menu="@menu/bottom_navigation_menu"
+        android:elevation="8dp"/>
 </RelativeLayout>

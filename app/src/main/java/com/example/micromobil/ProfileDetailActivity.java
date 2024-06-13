@@ -87,10 +87,7 @@ public class ProfileDetailActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
             return true;
-        } else if (id == R.id.action_search) {
-            // Search action
-            return true;
-        } else if (id == R.id.action_drink) {
+        }  else if (id == R.id.action_drink) {
             // Drink action
             Intent intent = new Intent(ProfileDetailActivity.this, DrinkActivity.class);
             intent.putExtra("profileName", profileName);

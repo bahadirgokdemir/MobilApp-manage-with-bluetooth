@@ -16,8 +16,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://jitpack.io") }  // Jitpack deposunu buraya ekleyin
     }
 }
+
 
 rootProject.name = "MicroMobil"
 include(":app")

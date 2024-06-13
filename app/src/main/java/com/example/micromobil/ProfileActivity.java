@@ -216,10 +216,7 @@ public class ProfileActivity extends AppCompatActivity {
             startActivity(intentHome);
             finish();
             return true;
-        } else if (id == R.id.action_search) {
-            // Search action
-            return true;
-        } else if (id == R.id.action_drink) {
+        }  else if (id == R.id.action_drink) {
             Intent intentDrink = new Intent(ProfileActivity.this, DrinkActivity.class);
             intentDrink.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intentDrink);

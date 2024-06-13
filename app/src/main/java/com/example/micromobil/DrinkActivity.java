@@ -27,6 +27,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.io.IOException;
@@ -62,14 +69,18 @@ public class DrinkActivity extends AppCompatActivity {
     private Button btnStop;
     private Button btnConnect;
 
+    private LineChart lineChart;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drink);
+        lineChart = findViewById(R.id.lineChart);
 
         drinkListLayout = findViewById(R.id.drink_list_layout);
         profileManager = ProfileManager.getInstance(this);
-
         deviceSpinner = findViewById(R.id.device_spinner);
         btnStop = findViewById(R.id.btnStop);
         btnConnect = findViewById(R.id.connect_button);
@@ -89,25 +100,17 @@ public class DrinkActivity extends AppCompatActivity {
 
         checkPermissions();
 
-        btnConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int position = deviceSpinner.getSelectedItemPosition();
-                if (position != AdapterView.INVALID_POSITION) {
-                    selectedDevice = bluetoothDeviceArrayList.get(position);
-                    setupBluetoothConnection();
-                } else {
-                    Toast.makeText(DrinkActivity.this, "Lütfen bir cihaz seçin", Toast.LENGTH_SHORT).show();
-                }
+        btnConnect.setOnClickListener(v -> {
+            int position = deviceSpinner.getSelectedItemPosition();
+            if (position != AdapterView.INVALID_POSITION) {
+                selectedDevice = bluetoothDeviceArrayList.get(position);
+                setupBluetoothConnection();
+            } else {
+                Toast.makeText(DrinkActivity.this, "Lütfen bir cihaz seçin", Toast.LENGTH_SHORT).show();
             }
         });
 
-        btnStop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sendCommand("3");
-            }
-        });
+        btnStop.setOnClickListener(v -> sendCommand("3"));
 
         handler = new Handler(Looper.getMainLooper());
         buffer = new byte[1024];
@@ -121,6 +124,7 @@ public class DrinkActivity extends AppCompatActivity {
         });
 
         loadDrinks();
+        setupChart();
     }
 
     private boolean handleBottomNavigationItemSelected(@NonNull MenuItem item) {
@@ -131,9 +135,7 @@ public class DrinkActivity extends AppCompatActivity {
         if (id == R.id.action_home) {
             finish();
             return true;
-        } else if (id == R.id.action_search) {
-            // Arama işlemleri
-            return true;
+
         } else if (id == R.id.action_drink) {
             // Drink işlemleri
             return true;
@@ -173,19 +175,9 @@ public class DrinkActivity extends AppCompatActivity {
                     temperatureValueTextView.setText(String.valueOf(currentTemperature));
                 }
 
-                increaseButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        showTemperatureInputDialog(temperatureValueTextView, true);
-                    }
-                });
+                increaseButton.setOnClickListener(v -> showTemperatureInputDialog(temperatureValueTextView, true));
 
-                decreaseButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        showTemperatureInputDialog(temperatureValueTextView, false);
-                    }
-                });
+                decreaseButton.setOnClickListener(v -> showTemperatureInputDialog(temperatureValueTextView, false));
 
                 drinkListLayout.addView(drinkView);
             }
@@ -226,8 +218,8 @@ public class DrinkActivity extends AppCompatActivity {
             deviceListAdapter.notifyDataSetChanged();
         }
     }
-
-    private void setupBluetoothConnection() {
+    String incomingMessage;
+    public void setupBluetoothConnection() {
         try {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                 return;
@@ -244,7 +236,8 @@ public class DrinkActivity extends AppCompatActivity {
                     while (true) {
                         try {
                             bytes = inputStream.read(buffer);
-                            final String incomingMessage = new String(buffer, 0, bytes);
+                            incomingMessage ="";
+                            incomingMessage = new String(buffer, 0, bytes);
                             handler.post(new Runnable() {
                                 public void run() {
                                     responseTextView.setText(incomingMessage);
@@ -329,4 +322,66 @@ public class DrinkActivity extends AppCompatActivity {
             }
         }
     }
+
+    private void setupChart() {
+        // Dummy veriler
+        List<String> drinkNames = new ArrayList<>();
+        drinkNames.add("Kola");
+        drinkNames.add("Soğuk Çay");
+        drinkNames.add("Kahve");
+
+        List<Entry> entries = new ArrayList<>();
+        entries.add(new Entry(0, 25)); // Kola için sıcaklık değeri
+        entries.add(new Entry(1, 2));  // Soğuk Çay için sıcaklık değeri
+        entries.add(new Entry(2, 60)); // Kahve için sıcaklık değeri
+
+        LineDataSet dataSet = new LineDataSet(entries, "Drink Temperatures");
+        dataSet.setColor(android.graphics.Color.BLUE);
+        dataSet.setValueTextColor(android.graphics.Color.BLACK);
+
+        LineData lineData = new LineData(dataSet);
+        lineChart.setData(lineData);
+
+        XAxis xAxis = lineChart.getXAxis();
+        xAxis.setValueFormatter(new IndexAxisValueFormatter(drinkNames)); // Yatay eksende içecek isimlerini gösterir
+        xAxis.setGranularity(1f);
+        xAxis.setGranularityEnabled(true);
+
+        Description description = new Description();
+        description.setText("Drink Temperatures");
+        lineChart.setDescription(description);
+
+        lineChart.invalidate(); // refresh
+    }
+
+    public void setupChartDynamic() {
+        // Dummy veriler
+        List<String> drinkNames = new ArrayList<>();
+        drinkNames.add("Default");
+        drinkNames.add("Current");
+        float floatValue = Float.parseFloat(incomingMessage);
+
+        List<Entry> entries = new ArrayList<>();
+        entries.add(new Entry(0, 25));
+        entries.add(new Entry(1, floatValue));
+
+        LineDataSet dataSet = new LineDataSet(entries, "Drink Temperatures");
+        dataSet.setColor(android.graphics.Color.BLUE);
+        dataSet.setValueTextColor(android.graphics.Color.BLACK);
+
+        LineData lineData = new LineData(dataSet);
+        lineChart.setData(lineData);
+
+        XAxis xAxis = lineChart.getXAxis();
+        xAxis.setValueFormatter(new IndexAxisValueFormatter(drinkNames)); // Yatay eksende içecek isimlerini gösterir
+        xAxis.setGranularity(1f);
+        xAxis.setGranularityEnabled(true);
+
+        Description description = new Description();
+        description.setText("Drink Temperatures");
+        lineChart.setDescription(description);
+
+        lineChart.invalidate(); // refresh
+    }
+
 }
