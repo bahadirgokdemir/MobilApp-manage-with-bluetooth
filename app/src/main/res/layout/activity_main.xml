@@ -34,27 +34,40 @@
             android:textColor="#000" />
     </LinearLayout>
 
-    <!-- Add Profile Butonu -->
-    <Button
-        android:id="@+id/addProfileButton"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add Profile"
-        android:padding="16dp"
-        android:background="@drawable/button_background"
         android:layout_below="@id/profile_info"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"/>
+        android:layout_above="@id/bottom_navigation"
+        android:fillViewport="true">
 
-    <!-- Profillerin Listesi -->
-    <LinearLayout
-        android:id="@+id/profile_list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_below="@id/addProfileButton"
-        android:layout_marginBottom="16dp">
-    </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp">
+
+            <!-- Add Profile Butonu -->
+            <Button
+                android:id="@+id/addProfileButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Add Profile"
+                android:padding="16dp"
+                android:background="@drawable/button_background"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Profillerin Listesi -->
+            <LinearLayout
+                android:id="@+id/profile_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp">
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 
     <!-- Çizgi -->
     <View

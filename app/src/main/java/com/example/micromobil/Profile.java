@@ -9,18 +9,17 @@ import java.util.Map;
 public class Profile implements Serializable {
     private String name;
     private Map<String, List<Integer>> drinks;
-    private Map<String, List<Integer>> drinkTemperatures;
 
     public Profile(String name, List<Integer> temperatures) {
         this.name = name;
         this.drinks = new HashMap<>();
         this.drinks.put(name, temperatures);
     }
+
     public Profile(String name, Map<String, List<Integer>> drinks) {
         this.name = name;
         this.drinks = drinks;
     }
-
 
     public String getName() {
         return name;
@@ -47,8 +46,14 @@ public class Profile implements Serializable {
     }
 
     public void setDrinks(Map<String, List<Integer>> drinkTemperatures) {
+        this.drinks = drinkTemperatures;
     }
+
+    public Map<String, List<Integer>> getDrinkTemperatures() {
+        return drinks;
+    }
+
     public void setDrinkTemperatures(Map<String, List<Integer>> drinkTemperatures) {
-        this.drinkTemperatures = drinkTemperatures;
+        this.drinks = drinkTemperatures;
     }
 }

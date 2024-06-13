@@ -33,7 +33,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -146,7 +149,27 @@ public class DrinkActivity extends AppCompatActivity {
         Log.d("DrinkActivity", "loadDrinks: profiles size = " + profileManager.getProfiles().size());
 
         List<Profile> profiles = profileManager.getProfiles();
+        Map<String, Profile> profileMap = new HashMap<>();
+
+        // Profil adlarını ve profil objelerini bir haritada saklayalım
         for (Profile profile : profiles) {
+            if (!profileMap.containsKey(profile.getName())) {
+                profileMap.put(profile.getName(), profile);
+            } else {
+                Profile existingProfile = profileMap.get(profile.getName());
+                if (!existingProfile.getDrinks().isEmpty()) {
+                    profileMap.put(profile.getName(), existingProfile);
+                } else if (!profile.getDrinks().isEmpty()) {
+                    profileMap.put(profile.getName(), profile);
+                }
+            }
+        }
+
+        for (Profile profile : profileMap.values()) {
+            if (profile.getDrinks().isEmpty()) {
+                continue;
+            }
+
             Log.d("DrinkActivity", "Profile: " + profile.getName());
 
             // Profil başlığını ekle
@@ -154,7 +177,18 @@ public class DrinkActivity extends AppCompatActivity {
             profileNameTextView.setText(profile.getName());
             profileNameTextView.setTextSize(20);
             profileNameTextView.setTypeface(null, Typeface.BOLD);
+            profileNameTextView.setPadding(0, 16, 0, 8); // Üst ve alt padding ekledik
+
+            // Çizgi ekle
+            View lineView = new View(this);
+            lineView.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    2
+            ));
+            lineView.setBackgroundColor(ContextCompat.getColor(this, android.R.color.darker_gray));
+
             drinkListLayout.addView(profileNameTextView);
+            drinkListLayout.addView(lineView);
 
             for (String drink : profile.getDrinks()) {
                 Log.d("DrinkActivity", "Drink: " + drink);
@@ -192,6 +226,8 @@ public class DrinkActivity extends AppCompatActivity {
         }
     }
 
+
+
     private void checkPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ||
@@ -205,6 +241,7 @@ public class DrinkActivity extends AppCompatActivity {
             listPairedDevices();
         }
     }
+
 
     private void listPairedDevices() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
@@ -229,38 +266,73 @@ public class DrinkActivity extends AppCompatActivity {
 
     private void setupBluetoothConnection() {
         try {
+            // Bluetooth CONNECT iznini kontrol et
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, REQUEST_BLUETOOTH_PERMISSIONS);
                 return;
             }
 
-            bluetoothSocket = selectedDevice.createRfcommSocketToServiceRecord(MY_UUID);
-            bluetoothSocket.connect();
-            outputStream = bluetoothSocket.getOutputStream();
-            inputStream = bluetoothSocket.getInputStream();
-            Toast.makeText(this, "Bağlantı kuruldu: " + selectedDevice.getName(), Toast.LENGTH_SHORT).show();
+            // Mevcut bağlantıyı kapat
+            if (bluetoothSocket != null) {
+                try {
+                    bluetoothSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
 
-            new Thread(new Runnable() {
-                public void run() {
-                    while (true) {
-                        try {
-                            bytes = inputStream.read(buffer);
-                            final String incomingMessage = new String(buffer, 0, bytes);
-                            handler.post(new Runnable() {
-                                public void run() {
-                                    responseTextView.setText(incomingMessage);
-                                }
-                            });
-                        } catch (IOException e) {
-                            break;
+            // Yeni soket oluştur
+            bluetoothSocket = selectedDevice.createInsecureRfcommSocketToServiceRecord(MY_UUID);
+            Log.d("DrinkActivity", "setupBluetoothConnection: " + selectedDevice.getName());
+
+            bluetoothAdapter.cancelDiscovery(); // Bağlantı öncesi keşfi durdur
+
+            try {
+                bluetoothSocket.connect();
+                outputStream = bluetoothSocket.getOutputStream();
+                inputStream = bluetoothSocket.getInputStream();
+                Toast.makeText(this, "Bağlantı kuruldu: " + selectedDevice.getName(), Toast.LENGTH_SHORT).show();
+
+                new Thread(new Runnable() {
+                    public void run() {
+                        while (true) {
+                            try {
+                                bytes = inputStream.read(buffer);
+                                final String incomingMessage = new String(buffer, 0, bytes);
+                                handler.post(new Runnable() {
+                                    public void run() {
+                                        responseTextView.setText(incomingMessage);
+                                    }
+                                });
+                            } catch (IOException e) {
+                                // Bağlantı kesildiğinde hata mesajı göster
+                                handler.post(new Runnable() {
+                                    public void run() {
+                                        Toast.makeText(DrinkActivity.this, "Bağlantı kesildi", Toast.LENGTH_SHORT).show();
+                                        responseTextView.setText("");
+                                    }
+                                });
+                                break;
+                            }
                         }
                     }
+                }).start();
+            } catch (IOException connectException) {
+                // Bağlantı başarısız olduysa, soketi kapat ve hatayı bildir
+                try {
+                    bluetoothSocket.close();
+                } catch (IOException closeException) {
+                    closeException.printStackTrace();
                 }
-            }).start();
+                connectException.printStackTrace();
+                Toast.makeText(this, "Bağlantı başarısız", Toast.LENGTH_SHORT).show();
+            }
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(this, "Bağlantı başarısız", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     private void sendCommand(String command) {
         if (outputStream != null) {

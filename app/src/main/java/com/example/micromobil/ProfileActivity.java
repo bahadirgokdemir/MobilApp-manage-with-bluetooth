@@ -36,6 +36,8 @@ public class ProfileActivity extends AppCompatActivity {
     private ArrayAdapter<String> drinkTypeAdapter;
     private List<String> drinkTypes;
     private boolean isProfileSaved = false;
+    private String oldProfileName;
+    private Map<String, List<Integer>> existingDrinkTemperatures;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +52,23 @@ public class ProfileActivity extends AppCompatActivity {
 
         EditText profileNameEditText = findViewById(R.id.profileName);
         Button saveProfileButton = findViewById(R.id.saveProfileButton);
+
+        // Profil düzenleme kontrolü
+        Intent intent = getIntent();
+        oldProfileName = intent.getStringExtra("profileName");
+        existingDrinkTemperatures = (Map<String, List<Integer>>) intent.getSerializableExtra("drinkTemperatures");
+
+        if (oldProfileName != null) {
+            profileNameEditText.setText(oldProfileName);
+            if (existingDrinkTemperatures != null) {
+                for (Map.Entry<String, List<Integer>> entry : existingDrinkTemperatures.entrySet()) {
+                    addFieldsWithValues(entry.getKey(), entry.getValue());
+                }
+            }
+        } else {
+            // Initial field
+            addFields(null);
+        }
 
         saveProfileButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,7 +85,7 @@ public class ProfileActivity extends AppCompatActivity {
                 }
 
                 // Profil zaten mevcut mu kontrol et
-                if (profileManager.getProfile(profileName) != null) {
+                if (oldProfileName == null && profileManager.getProfile(profileName) != null) {
                     Toast.makeText(ProfileActivity.this, "Profile already exists", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -88,7 +107,11 @@ public class ProfileActivity extends AppCompatActivity {
                 }
 
                 Profile profile = new Profile(profileName, drinkTemperatures);
-                profileManager.addProfile(profile);
+                if (oldProfileName != null) {
+                    profileManager.updateProfile(oldProfileName, profileName, drinkTemperatures);
+                } else {
+                    profileManager.addProfile(profile);
+                }
 
                 // Profile'ı dosyaya yaz
                 writeProfileToFile(profile);
@@ -100,9 +123,6 @@ public class ProfileActivity extends AppCompatActivity {
                 finish();
             }
         });
-
-        // Initial field
-        addFields(null);
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(this::handleBottomNavigationItemSelected);
@@ -119,6 +139,10 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     public void addFields(View view) {
+        addFieldsWithValues(null, null);
+    }
+
+    private void addFieldsWithValues(String drinkType, List<Integer> temperatures) {
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View fieldView = inflater.inflate(R.layout.field_item, null);
 
@@ -139,6 +163,10 @@ public class ProfileActivity extends AppCompatActivity {
             }
         });
 
+        if (drinkType != null) {
+            profileTypeSpinner.setSelection(drinkTypes.indexOf(drinkType));
+        }
+
         ImageButton addButton = fieldView.findViewById(R.id.addDrinkButton);
         addButton.setOnClickListener(v -> addFields(null));
 
@@ -147,6 +175,13 @@ public class ProfileActivity extends AppCompatActivity {
 
         if (fieldsLayout.getChildCount() > 0) {
             deleteButton.setVisibility(View.VISIBLE);
+        }
+
+        if (temperatures != null) {
+            for (int temperature : temperatures) {
+                EditText temperatureField = fieldView.findViewById(R.id.temperatureField);
+                temperatureField.setText(String.valueOf(temperature));
+            }
         }
 
         fieldViews.add(fieldView);

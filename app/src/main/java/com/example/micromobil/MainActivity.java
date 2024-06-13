@@ -19,7 +19,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,16 +115,29 @@ public class MainActivity extends AppCompatActivity {
         profileListLayout.removeAllViews();
 
         List<Profile> profiles = profileManager.getProfiles();
+        Map<String, Profile> profileMap = new HashMap<>();
         Log.d("ProfileManager", "Loaded profiles: " + profiles.size());
         Log.d("ProfileManager", "Profiles: " + profiles);
 
         for (Profile profile : profiles) {
+            // Eğer aynı isimde bir profil varsa ve boşsa, yeni profili kontrol et
+            if (profileMap.containsKey(profile.getName())) {
+                Profile existingProfile = profileMap.get(profile.getName());
+                if (existingProfile.getDrinks().isEmpty() && !profile.getDrinks().isEmpty()) {
+                    profileMap.put(profile.getName(), profile);
+                }
+            } else {
+                profileMap.put(profile.getName(), profile);
+            }
+        }
+
+        for (Profile profile : profileMap.values()) {
             addProfileButton(profile);
         }
 
         // "Add Profile" butonunun her zaman en altta olmasını sağla
         if (addProfileButton.getParent() != null) {
-            ((RelativeLayout) addProfileButton.getParent()).removeView(addProfileButton);
+            ((ViewGroup) addProfileButton.getParent()).removeView(addProfileButton);
         }
         profileListLayout.addView(addProfileButton);
     }
@@ -168,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
                 // Edit profile action
                 Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
                 intent.putExtra("profileName", profile.getName());
+                intent.putExtra("drinkTemperatures", (HashMap<String, List<Integer>>) profile.getDrinkTemperatures());
                 startActivityForResult(intent, 2);
             }
         });
@@ -207,10 +220,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (requestCode == 2 && resultCode == RESULT_OK) {
             String oldProfileName = data.getStringExtra("oldProfileName");
             String newProfileName = data.getStringExtra("newProfileName");
-            Map<String, List<Integer>> drinkTemperatures = new HashMap<>();
+            Map<String, List<Integer>> drinkTemperatures = (Map<String, List<Integer>>) data.getSerializableExtra("drinkTemperatures");
             profileManager.updateProfile(oldProfileName, newProfileName, drinkTemperatures);
             loadProfiles();
         }
     }
-
 }
