@@ -28,12 +28,16 @@
         android:paddingVertical="12dp"
         android:elevation="4dp" />
 
-    <ProgressBar
-        android:id="@+id/progress_bar"
+    <Button
+        android:id="@+id/test_notification_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Bildirim Gönder"
         android:layout_gravity="center_horizontal"
-        android:visibility="gone" />
+        android:layout_marginBottom="16dp"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="12dp"
+        android:elevation="4dp" />
 
     <LinearLayout
         android:id="@+id/drink_list_layout"
